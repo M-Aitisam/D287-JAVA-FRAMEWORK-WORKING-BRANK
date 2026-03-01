@@ -1,0 +1,38 @@
+# Build
+target/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+
+# Local data
+*.dat
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+logs/
+*.tmp
+*.bak
+*~
+
+# JVM
+hs_err_pid*
+replay_pid*
