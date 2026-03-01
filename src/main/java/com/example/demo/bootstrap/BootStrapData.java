@@ -2,17 +2,12 @@ package com.example.demo.bootstrap;
 
 import com.example.demo.domain.InhousePart;
 import com.example.demo.domain.OutsourcedPart;
-import com.example.demo.domain.Part;
 import com.example.demo.domain.Product;
 import com.example.demo.repositories.OutsourcedPartRepository;
 import com.example.demo.repositories.PartRepository;
 import com.example.demo.repositories.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class BootStrapData implements CommandLineRunner {
@@ -36,7 +31,9 @@ public class BootStrapData implements CommandLineRunner {
         // Add sample inventory only when both the part and product lists are empty.
         if (partRepository.count() == 0 && productRepository.count() == 0) {
 
-            // 5 parts
+            System.out.println("Loading sample data...");
+
+            // STEP 1: Create and save all parts first
             InhousePart strings = new InhousePart();
             strings.setName("Acoustic Guitar Strings Set");
             strings.setPrice(12.99);
@@ -44,6 +41,7 @@ public class BootStrapData implements CommandLineRunner {
             strings.setMin(10);
             strings.setMax(100);
             strings.setPartId(1001);
+            partRepository.save(strings);
 
             InhousePart tuners = new InhousePart();
             tuners.setName("Machine Head Tuners Set");
@@ -52,6 +50,7 @@ public class BootStrapData implements CommandLineRunner {
             tuners.setMin(5);
             tuners.setMax(50);
             tuners.setPartId(1002);
+            partRepository.save(tuners);
 
             OutsourcedPart pickups = new OutsourcedPart();
             pickups.setName("Humbucker Pickup Set");
@@ -60,6 +59,7 @@ public class BootStrapData implements CommandLineRunner {
             pickups.setInv(20);
             pickups.setMin(5);
             pickups.setMax(40);
+            partRepository.save(pickups);
 
             OutsourcedPart neck = new OutsourcedPart();
             neck.setName("Maple Guitar Neck");
@@ -68,6 +68,7 @@ public class BootStrapData implements CommandLineRunner {
             neck.setInv(15);
             neck.setMin(3);
             neck.setMax(25);
+            partRepository.save(neck);
 
             InhousePart bridge = new InhousePart();
             bridge.setName("Tune-O-Matic Bridge");
@@ -76,19 +77,35 @@ public class BootStrapData implements CommandLineRunner {
             bridge.setMin(5);
             bridge.setMax(50);
             bridge.setPartId(1003);
-
-            partRepository.save(strings);
-            partRepository.save(tuners);
-            partRepository.save(pickups);
-            partRepository.save(neck);
             partRepository.save(bridge);
 
-            // 5 products (guitars) — set both sides of the relationship (Part owns the join table)
+            // STEP 2: Create products
             Product acoustic = new Product("Classic Acoustic Guitar", 299.99, 8);
+            Product electric = new Product("Standard Electric Guitar", 549.99, 5);
+            Product beginnerPack = new Product("Beginner Guitar Pack", 199.99, 12);
+            Product bass = new Product("4-String Bass Guitar", 429.99, 4);
+            Product custom = new Product("Custom Electric Guitar", 899.99, 2);
+
+            // STEP 3: Save products first
+            productRepository.save(acoustic);
+            productRepository.save(electric);
+            productRepository.save(beginnerPack);
+            productRepository.save(bass);
+            productRepository.save(custom);
+
+            // STEP 4: Clear any existing associations to avoid duplicates
+            strings.getProducts().clear();
+            tuners.getProducts().clear();
+            pickups.getProducts().clear();
+            neck.getProducts().clear();
+            bridge.getProducts().clear();
+
+            // STEP 5: Add associations - each part to its products
+            // Acoustic Guitar (only needs strings)
             acoustic.getParts().add(strings);
             strings.getProducts().add(acoustic);
-
-            Product electric = new Product("Standard Electric Guitar", 549.99, 5);
+            
+            // Electric Guitar (needs all parts)
             electric.getParts().add(strings);
             electric.getParts().add(pickups);
             electric.getParts().add(neck);
@@ -100,13 +117,13 @@ public class BootStrapData implements CommandLineRunner {
             bridge.getProducts().add(electric);
             tuners.getProducts().add(electric);
 
-            Product beginnerPack = new Product("Beginner Guitar Pack", 199.99, 12);
+            // Beginner Pack (strings and tuners)
             beginnerPack.getParts().add(strings);
             beginnerPack.getParts().add(tuners);
             strings.getProducts().add(beginnerPack);
             tuners.getProducts().add(beginnerPack);
 
-            Product bass = new Product("4-String Bass Guitar", 429.99, 4);
+            // Bass Guitar (strings, neck, tuners, bridge)
             bass.getParts().add(strings);
             bass.getParts().add(neck);
             bass.getParts().add(tuners);
@@ -116,7 +133,7 @@ public class BootStrapData implements CommandLineRunner {
             tuners.getProducts().add(bass);
             bridge.getProducts().add(bass);
 
-            Product custom = new Product("Custom Electric Guitar", 899.99, 2);
+            // Custom Electric Guitar (all parts)
             custom.getParts().add(strings);
             custom.getParts().add(pickups);
             custom.getParts().add(neck);
@@ -128,18 +145,20 @@ public class BootStrapData implements CommandLineRunner {
             bridge.getProducts().add(custom);
             tuners.getProducts().add(custom);
 
+            // STEP 6: Save everything ONE TIME at the end
             productRepository.save(acoustic);
             productRepository.save(electric);
             productRepository.save(beginnerPack);
             productRepository.save(bass);
             productRepository.save(custom);
+            
+            partRepository.save(strings);
+            partRepository.save(tuners);
+            partRepository.save(pickups);
+            partRepository.save(neck);
+            partRepository.save(bridge);
 
-            // Re-save parts so the owner side (Part) persists the product_part join table
-            // partRepository.save(strings);
-            // partRepository.save(tuners);
-            // partRepository.save(pickups);
-            // partRepository.save(neck);
-            // partRepository.save(bridge);
+            System.out.println("Sample data loaded successfully!");
         }
 
         System.out.println("Started in Bootstrap");
